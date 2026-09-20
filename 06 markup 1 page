@@ -1,0 +1,147 @@
+<!-- Hana Pink site — part 6 of 14: page markup
+     Carrd: Embed element, Type: Code, Style: Inline (where the site goes)
+     Keep the parts in this order. -->
+<div id="pm" class="pm" data-lang="en">
+  <div class="pm-aether" aria-hidden="true"><i></i><i></i><i></i></div>
+  <div class="pm-orn" aria-hidden="true">
+    <span class="o o1"><svg viewBox="0 0 14 14"><path d="M7 .4c.5 3.5 2.9 5.9 6.5 6.6-3.6.7-6 3.1-6.5 6.6-.5-3.5-2.9-5.9-6.5-6.6C4.1 6.3 6.5 3.9 7 .4Z"/></svg></span>
+    <span class="o o2"><svg viewBox="0 0 24 24"><path d="M16.8 1.8a10.2 10.2 0 1 0 5.4 16.4 8.6 8.6 0 0 1-5.4-16.4Z"/></svg></span>
+    <span class="o o3"><svg viewBox="0 0 24 24"><path d="M12 1v22M1 12h22"/></svg></span>
+    <span class="o o4"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46"/><circle cx="50" cy="50" r="29"/><path d="M50 18 76 66H24Z"/><path d="M50 82 24 34h52Z"/></svg></span>
+    <span class="o o5"></span>
+    <span class="o o6"></span>
+  </div>
+
+  <div class="pm-sheet">
+  <header class="pm-bar">
+    <button class="pm-brand" type="button" data-go="home">
+      <span class="n" data-t="brand">Hana Pink</span>
+      <span class="w">Gilgamesh / Aether</span>
+    </button>
+    <nav class="pm-nav" aria-label="Sections">
+      <button type="button" data-go="gallery" data-t="nav_gallery">Gallery</button>
+      <button type="button" data-go="about" data-t="nav_about">About</button>
+      <button type="button" data-go="contact" data-t="nav_contact">Contact</button>
+    </nav>
+    <div class="pm-tools">
+      <button class="pm-chip pm-clock" type="button" data-ta="clock_label" aria-label="Switch between Eorzea time and local time"><small>ET</small><span class="t">00:00</span></button>
+      <button class="pm-chip pm-lang" type="button" data-ta="lang_label" aria-label="Switch language"><span data-l="en">EN</span><i></i><span data-l="zh">中</span></button>
+      <button class="pm-chip pm-sound" type="button" aria-pressed="false" data-ta="sound_label" aria-label="Turn ambience on or off"><span class="pm-eq" aria-hidden="true"><i></i><i></i><i></i></span></button>
+    </div>
+  </header>
+
+  <main class="pm-main">
+    <section class="pm-hero" id="pm-home">
+      <div class="pm-view pm-dark">
+        <img class="pm-hero-pic" alt="" fetchpriority="high" decoding="async">
+        <div class="pm-view-dim" aria-hidden="true"></div>
+        <div class="pm-thirds" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="pm-focus" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="pm-reticle" aria-hidden="true"><span></span><span></span></div>
+        <div class="pm-hud" aria-hidden="true">
+          <div class="tl"><b class="rec"></b>REC<span class="tc">00:00:00</span></div>
+          <div class="tr"><span>FRAME</span><span class="pm-frame-n">001</span>/<span class="pm-frame-t">---</span></div>
+          <div class="sc"></div>
+          <div class="br"><span class="pm-vf-et">ET 00:00</span><span>GILGAMESH / AETHER</span></div>
+        </div>
+        <div class="pm-hc">
+          <p class="pm-eyebrow" data-t="eyebrow">Final Fantasy XIV — GPose</p>
+          <h1 class="pm-title" data-t="brand">Hana Pink</h1>
+          <i class="pm-rule"></i>
+          <p class="pm-sub" data-t="hero_sub">Photographs from Eorzea</p>
+          <div class="pm-actions">
+            <button class="pm-btn" type="button" data-go="gallery"><span data-t="hero_cta">Enter the gallery</span></button>
+            <button class="pm-btn" type="button" data-go="about"><span data-t="nav_about">About</span></button>
+          </div>
+        </div>
+        <button class="pm-shutter" type="button" data-hint="NEXT FRAME" data-ta="shutter_label" aria-label="Show the next frame"><span></span></button>
+      </div>
+      <dl class="pm-facts">
+        <div><dt data-t="f_frames">Frames</dt><dd class="pm-fact-frames">—</dd></div>
+        <div><dt data-t="f_dest">Destinations</dt><dd class="pm-fact-dest">—</dd></div>
+        <div><dt data-t="f_since">Adventuring since</dt><dd data-t="p_since_v">December 2023</dd></div>
+      </dl>
+    </section>
+
+    <section class="pm-sec pm-dark" id="pm-gallery">
+      <div class="pm-in">
+        <div class="pm-head"><span class="pm-idx">01</span><h2 data-t="tp_title">Teleport</h2><svg class="pm-sp" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 0c.5 3.6 2.9 6 6.5 7-3.6 1-6 3.4-6.5 7-.5-3.6-2.9-6-6.5-7 3.6-1 6-3.4 6.5-7Z"/></svg><i></i></div>
+        <p class="pm-lede" data-t="tp_lede">Each destination is a set of photos. Choose one to travel there.</p>
+        <button class="pm-feat" type="button" hidden>
+          <img alt="">
+          <div class="pm-vf"><i></i><i></i><i></i><i></i></div>
+          <div class="pm-feat-c"><small></small><b></b><span><svg class="pm-sp" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 0c.5 3.6 2.9 6 6.5 7-3.6 1-6 3.4-6.5 7-.5-3.6-2.9-6-6.5-7 3.6-1 6-3.4 6.5-7Z"/></svg><span class="c"></span></span></div>
+        </button>
+        <div class="pm-tp">
+          <div class="pm-regions" role="tablist" aria-label="Categories"></div>
+          <ul class="pm-places"></ul>
+          <div class="pm-preview" aria-hidden="true">
+            <img alt=""><img alt="">
+            <div class="pm-vf"><i></i><i></i><i></i><i></i></div>
+            <div class="pm-pv-cap"><small class="r"></small><b class="n"></b><span><svg class="pm-sp" viewBox="0 0 14 14"><path d="M7 0c.5 3.6 2.9 6 6.5 7-3.6 1-6 3.4-6.5 7-.5-3.6-2.9-6-6.5-7 3.6-1 6-3.4 6.5-7Z"/></svg><span class="c"></span></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pm-sec" id="pm-about">
+      <div class="pm-in">
+        <div class="pm-head"><span class="pm-idx">02</span><h2 data-t="plate_title">Adventurer plate</h2><svg class="pm-sp" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 0c.5 3.6 2.9 6 6.5 7-3.6 1-6 3.4-6.5 7-.5-3.6-2.9-6-6.5-7 3.6-1 6-3.4 6.5-7Z"/></svg><i></i></div>
+        <p class="pm-lede" data-t="plate_lede">A little about the person behind the camera.</p>
+        <article class="pm-plate">
+          <div class="pm-pcell">
+            <figure class="pm-portrait">
+              <img class="pm-plate-pic" alt="Hana Pink" loading="lazy" decoding="async">
+              <figcaption><span>Hana Pink</span><span>Gilgamesh</span></figcaption>
+              <div class="pm-vf" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            </figure>
+          </div>
+          <div class="pm-pbody">
+            <p class="pm-ptitle" data-t="p_title">Photographer of Eorzea</p>
+            <h3 class="pm-pname">Hana Pink</h3>
+            <dl class="pm-stats">
+              <div><dt data-t="p_world">Home world</dt><dd>Gilgamesh [Aether]</dd></div>
+              <div><dt data-t="p_since">Adventuring since</dt><dd data-t="p_since_v">December 2023</dd></div>
+              <div><dt data-t="p_first">First world</dt><dd>Lamia</dd></div>
+              <div><dt data-t="p_form">Usually seen as</dt><dd data-t="p_form_v">Au Ra or Miqo'te, sometimes Lalafell</dd></div>
+            </dl>
+            <h4 data-t="p_comment">Search comment</h4>
+            <div class="pm-bio"></div>
+            <h4 data-t="p_likes">Pastimes</h4>
+            <ul class="pm-likes"></ul>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="pm-sec pm-dark" id="pm-contact">
+      <div class="pm-in">
+        <div class="pm-head"><span class="pm-idx">03</span><h2 data-t="ls_title">Linkshell</h2><svg class="pm-sp" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 0c.5 3.6 2.9 6 6.5 7-3.6 1-6 3.4-6.5 7-.5-3.6-2.9-6-6.5-7 3.6-1 6-3.4 6.5-7Z"/></svg><i></i></div>
+        <p class="pm-lede" data-t="ls_lede">Say hi in-game, or find me on any of these channels.</p>
+        <div class="pm-ls"></div>
+      </div>
+    </section>
+  </main>
+
+  <section class="pm-zv pm-dark" hidden aria-live="polite">
+    <div class="pm-zv-top">
+      <button class="pm-return" type="button"><svg class="pm-sp" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 0c.5 3.6 2.9 6 6.5 7-3.6 1-6 3.4-6.5 7-.5-3.6-2.9-6-6.5-7 3.6-1 6-3.4 6.5-7Z"/></svg><span data-t="return">Return</span></button>
+      <div class="pm-tabs"></div>
+    </div>
+    <div class="pm-zv-head">
+      <div class="pm-zt"><i></i><h1 class="pm-zv-title"></h1><i></i></div>
+      <p class="pm-zv-meta"></p>
+    </div>
+    <div class="pm-loadline" hidden></div>
+    <div class="pm-grid"></div>
+    <div class="pm-sentinel"></div>
+    <div class="pm-note" hidden></div>
+  </section>
+
+  <footer class="pm-foot pm-dark">
+    <span>FINAL FANTASY XIV (C) SQUARE ENIX CO., LTD.</span>
+    <span data-t="foot_photos">Photos by Hana Pink. Please credit when sharing.</span>
+    <span class="pm-demo" hidden>Demo mode: placeholder images (no Cloudinary cloud name set).</span>
+  </footer>
+  </div>
+</div>

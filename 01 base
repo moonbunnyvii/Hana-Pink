@@ -1,0 +1,91 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500&family=Sixtyfour&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Noto+Sans+SC:wght@200;300;400&family=Noto+Serif+SC:wght@200;300&display=swap">
+<style>
+
+/* Carrd container reset */
+body #wrapper{padding:0!important}
+body #main{max-width:none!important;width:100%!important;background:none!important;box-shadow:none!important;border-radius:0!important}
+body #main>.inner{padding:0!important;max-width:none!important;width:100%!important}
+body #main>.inner>*{margin-top:0!important;margin-bottom:0!important}
+
+/* Tokens */
+.pm,.pm-layer{
+  --ground:#dcdad6;
+  --frame:#161616;
+  --ui:"Chakra Petch","Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  --display:"Cormorant Garamond","Noto Serif SC","Songti SC","Source Han Serif SC",Georgia,serif;
+  --pixel:"Sixtyfour","Chakra Petch",ui-monospace,monospace;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  --dots:radial-gradient(rgba(17,17,17,.055) 1px,transparent 1px);
+  font-family:var(--ui);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  cursor:var(--cur,auto);
+}
+/* light context: the print */
+.pm-sheet,.pm-layer{--paper:#f5f4f2;--ink:#111111;--ash:#4e4b48;--dim:#7b7874;--line:rgba(17,17,17,.16);--line2:#111111;--mist:#e8e6e2;
+  --fill:rgba(17,17,17,.035);--fill2:rgba(17,17,17,.075);--scrim:rgba(245,244,242,.93)}
+/* dark context: panels, gallery, overlays */
+.pm-dark{--paper:#151517;--ink:#f1f0f2;--ash:#b3b0b8;--dim:#8d8a93;--line:rgba(255,255,255,.14);--line2:rgba(255,255,255,.6);--mist:#1d1d21;
+  --fill:rgba(255,255,255,.06);--fill2:rgba(255,255,255,.12);--scrim:rgba(17,17,19,.9)}
+.pm-dark{background-color:var(--paper);color:var(--ink)}
+.pm-alt{background-color:var(--mist)}
+.pm-layer{color:var(--ink)}
+
+.pm *,.pm *::before,.pm *::after,.pm-layer *,.pm-layer *::before,.pm-layer *::after{box-sizing:border-box}
+.pm [hidden],.pm-layer[hidden],.pm-layer [hidden]{display:none!important}
+:where(.pm,.pm-layer) button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;letter-spacing:inherit;text-align:inherit;cursor:var(--cur-p,pointer);-webkit-tap-highlight-color:transparent}
+:where(.pm,.pm-layer) a{color:inherit;text-decoration:none;cursor:var(--cur-p,pointer)}
+:where(.pm,.pm-layer) img{display:block;max-width:100%}
+:where(.pm) :where(h1,h2,h3,h4,p,ul,dl,dd,figure,figcaption){margin:0;padding:0}
+:where(.pm) ul{list-style:none}
+.pm :focus-visible,.pm-layer :focus-visible{outline:1px solid currentColor;outline-offset:3px}
+.pm{position:relative;isolation:isolate;background-color:var(--ground);color:#111;
+  font-size:15px;line-height:1.7;min-height:100vh;overflow-x:clip;padding:clamp(0px,2.4vw,44px) clamp(0px,3.4vw,72px);
+  background-image:var(--dots),linear-gradient(180deg,#e3e1dd,#d4d2ce 70%);background-size:26px 26px,100% 100%;background-attachment:fixed;
+  --rh:210px;--barh:64px}
+.pm[data-lang=zh],.pm-layer[data-lang=zh]{letter-spacing:.03em}
+@media (max-width:820px){.pm{padding:0}}
+@media (max-width:980px){.pm{--rh:170px}}
+@media (max-width:560px){.pm{--rh:110px}}
+
+/* type helpers */
+.pm-eyebrow{font-family:var(--pixel);font-size:10px;line-height:1.9;letter-spacing:.2em;color:var(--ash);text-transform:uppercase}
+.pm[data-lang=zh] .pm-eyebrow{font-family:var(--ui);font-size:11px;letter-spacing:.3em}
+.pm-idx{font-family:var(--pixel);font-size:10px;letter-spacing:.1em;color:var(--dim)}
+.pm-tick{font-family:var(--pixel);font-size:9px;letter-spacing:.16em;color:var(--dim)}
+
+/* drifting light behind the print */
+.pm-aether{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.pm-aether i{position:absolute;display:block;border-radius:50%;filter:blur(80px);opacity:.5}
+.pm-aether i:nth-child(1){width:46vw;height:46vw;left:-14vw;top:2vh;background:radial-gradient(circle,#fff,rgba(255,255,255,0) 70%);animation:pm-drift1 52s ease-in-out infinite alternate}
+.pm-aether i:nth-child(2){width:40vw;height:40vw;right:-12vw;top:44vh;background:radial-gradient(circle,#fff,rgba(255,255,255,0) 70%);animation:pm-drift2 64s ease-in-out infinite alternate}
+.pm-aether i:nth-child(3){width:34vw;height:34vw;left:16vw;bottom:-12vw;background:radial-gradient(circle,#fff,rgba(255,255,255,0) 70%);animation:pm-drift1 74s ease-in-out infinite alternate-reverse}
+@keyframes pm-drift1{to{transform:translate3d(6vw,4vh,0) scale(1.15)}}
+@keyframes pm-drift2{to{transform:translate3d(-7vw,-5vh,0) scale(1.1)}}
+
+/* ornaments in the margins */
+.pm-orn{position:fixed;inset:0;z-index:2;pointer-events:none;color:rgba(17,17,17,.5)}
+.pm-orn .o{position:absolute;opacity:.45}
+.pm-orn .o svg{width:100%;height:100%;display:block;fill:none;stroke:currentColor;stroke-width:1;vector-effect:non-scaling-stroke}
+.pm-orn .o1{top:13vh;left:2vw;width:78px;height:78px;animation:pm-float 17s ease-in-out infinite}
+.pm-orn .o2{bottom:17vh;left:3vw;width:44px;height:44px;animation:pm-float 23s ease-in-out infinite reverse}
+.pm-orn .o3{top:24vh;right:2.4vw;width:30px;height:30px;opacity:.35}
+.pm-orn .o4{bottom:13vh;right:2.6vw;width:88px;height:88px;animation:pm-turn 120s linear infinite}
+.pm-orn .o5{top:34vh;right:1.4vw;width:1px;height:210px;background:repeating-linear-gradient(180deg,currentColor 0 1px,transparent 1px 13px);opacity:.3}
+.pm-orn .o6{bottom:34vh;left:1.4vw;width:1px;height:160px;background:repeating-linear-gradient(180deg,currentColor 0 1px,transparent 1px 13px);opacity:.3}
+@keyframes pm-float{50%{transform:translateY(-14px)}}
+@keyframes pm-turn{to{transform:rotate(360deg)}}
+@media (max-width:1320px){.pm-orn{display:none}}
+
+/* the print */
+.pm-sheet{position:relative;z-index:1;max-width:1320px;margin:0 auto;
+  background-color:var(--paper);color:var(--ink);
+  background-image:linear-gradient(180deg,rgba(255,255,255,.75),rgba(255,255,255,0) 420px);
+  box-shadow:0 0 0 1px var(--frame),0 18px 54px rgba(0,0,0,.18)}
+.pm-sheet::before,.pm-sheet::after{content:"";position:absolute;top:0;bottom:0;width:6px;z-index:30;pointer-events:none;opacity:.85;
+  background-image:repeating-linear-gradient(180deg,transparent 0 14px,var(--frame) 14px 25px)}
+.pm-sheet::before{left:9px}
+.pm-sheet::after{right:9px}
+@media (max-width:900px){.pm-sheet::before,.pm-sheet::after{display:none}}
+
+</style>

@@ -1,0 +1,155 @@
+<!-- Hana Pink site — part 13 of 14: chat log, GPose mode, keyboard, navigation
+     Carrd: Embed element, Type: Code, Style: Hidden (Body End)
+     Keep the parts in this order. -->
+<script>
+(function () {
+var PM = window.PM;
+if (!PM || !PM.root) return;
+var root = PM.root, $ = PM.$, el = PM.el, t = PM.t, chat = PM.chat, lb = PM.lb, cast = PM.cast, toastEl = PM.toastEl;
+var layers = PM.layers, RM = PM.RM, FINE = PM.FINE, bi = PM.bi, PLACES = PM.PLACES, findPlace = PM.findPlace;
+var scrollToY = PM.scrollToY, topOf = PM.topOf, etNow = PM.etNow, ltNow = PM.ltNow;
+var log = chat.querySelector('.pm-chat-log'), input = chat.querySelector('input'), tab = chat.querySelector('.pm-chat-tab');
+PM.say = function (text, cls) {
+  log.appendChild(el('p', cls || 'sys', text));
+  while (log.children.length > 80) log.removeChild(log.firstChild);
+  log.scrollTop = log.scrollHeight;
+  if (!chat.classList.contains('open')) chat.classList.add('unread');
+}
+function setChat(open) {
+  chat.classList.toggle('open', open); chat.classList.remove('unread');
+  tab.setAttribute('aria-expanded', String(open));
+  if (open) { log.scrollTop = log.scrollHeight; if (FINE.matches) input.focus({ preventScroll: true }); }
+}
+tab.addEventListener('click', function () { setChat(!chat.classList.contains('open')); });
+
+var EMOTES = {
+  wave: ['You wave to Hana Pink.', '你向 Hana Pink 挥了挥手。', 'Hana Pink waves back!', 'Hana Pink 也向你挥手！'],
+  bow: ['You bow courteously.', '你礼貌地鞠了一躬。', 'Hana Pink returns the bow.', 'Hana Pink 也回了一礼。'],
+  cheer: ['You cheer Hana Pink on!', '你为 Hana Pink 加油！', 'Hana Pink beams at you.', 'Hana Pink 冲你笑了笑。'],
+  blush: ['You blush.', '你脸红了。'],
+  dance: ['You dance a happy little dance.', '你开心地跳起舞来。', null, null, 'dance'],
+  pose: ['You strike a pose. Hana Pink reaches for her camera.', '你摆了个姿势，Hana Pink 立刻举起了相机。', null, null, 'shutter'],
+  meowdy: ['Meowdy!', 'Meowdy！', 'Hana Pink waves from Gilgamesh. Meowdy!', 'Hana Pink 在 Gilgamesh 向你打招呼：Meowdy！']
+};
+function fx(kind) {
+  if (RM.matches) return;
+  if (kind === 'dance') {
+    [root].concat(layers).forEach(function (n) { n.classList.add('dance'); });
+    setTimeout(function () { [root].concat(layers).forEach(function (n) { n.classList.remove('dance'); }); }, 3000);
+  }
+  if (kind === 'shutter') {
+    cast.hidden = false; cast.classList.add('flash');
+    setTimeout(function () { cast.classList.remove('flash'); if (!PM.busy) cast.hidden = true; }, 780);
+  }
+}
+function run(raw) {
+  var text = raw.trim(); if (!text) return;
+  if (text.charAt(0) !== '/') { PM.say(bi('You: ', '你：') + text, 'say'); return; }
+  var parts = text.slice(1).split(/\s+/), cmd = parts.shift().toLowerCase(), arg = parts.join(' ');
+  if (EMOTES[cmd]) {
+    var m = EMOTES[cmd];
+    PM.say(bi(m[0], m[1]), 'emo');
+    if (m[2]) setTimeout(function () { PM.say(bi(m[2], m[3]), 'emo'); }, 800);
+    if (m[4]) fx(m[4]);
+    return;
+  }
+  switch (cmd) {
+    case 'help': case '?':
+      PM.say(bi('Commands: /tp <destination>, /return, /gpose, /time, /lang, /music, /clear', '命令：/tp <目的地>、/return、/gpose、/time、/lang、/music、/clear'));
+      PM.say(bi('Emotes: /wave /bow /cheer /dance /pose /blush /meowdy', '情感动作：/wave /bow /cheer /dance /pose /blush /meowdy'));
+      break;
+    case 'tp': case 'teleport':
+      if (!arg) { PM.say(bi('Destinations: ', '目的地：') + PLACES.map(function (p) { return p[PM.lang]; }).join(PM.lang === 'zh' ? '、' : ', ')); break; }
+      var p = findPlace(arg);
+      if (p) PM.teleport(p);
+      else PM.say(bi('No destination called “' + arg + '”. Type /tp to see them all.', '找不到目的地“' + arg + '”。输入 /tp 查看全部。'), 'err');
+      break;
+    case 'return': if (PM.current) PM.goBack(); else scrollToY(topOf(root)); break;
+    case 'gpose': PM.setGpose(true); break;
+    case 'time':
+      PM.say(bi('Eorzea time ' + etNow() + ', local time ' + ltNow() + '.', '艾欧泽亚时间 ' + etNow() + '，本地时间 ' + ltNow() + '。'));
+      break;
+    case 'lang':
+      PM.setLang(arg ? (/^(zh|cn|中)/i.test(arg) ? 'zh' : 'en') : (PM.lang === 'en' ? 'zh' : 'en'));
+      PM.say(bi('Language set to English.', '语言已切换为中文。'));
+      break;
+    case 'music': case 'bgm': PM.toggleSound(); break;
+    case 'clear': log.textContent = ''; break;
+    default:
+      PM.say(bi('The command “/' + cmd + '” does not exist.', '命令“/' + cmd + '”不存在。'), 'err');
+  }
+}
+input.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') { run(input.value); input.value = ''; }
+  if (e.key === 'Escape') { input.blur(); setChat(false); }
+  e.stopPropagation();
+});
+
+PM.gpose = false;
+var toastT;
+PM.toast = function (msg) {
+  toastEl.textContent = msg; toastEl.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(function () { toastEl.classList.remove('on'); }, 2600);
+}
+PM.setGpose = function (on) {
+  PM.gpose = on; document.body.classList.toggle('pm-gpose', on);
+  if (on) { input.blur(); PM.toast(t('gpose_on')); }
+}
+document.addEventListener('pointerdown', function (e) {
+  if (!PM.gpose) return;
+  e.preventDefault(); e.stopPropagation();
+  var swallow = function (ev) { ev.preventDefault(); ev.stopPropagation(); document.removeEventListener('click', swallow, true); };
+  document.addEventListener('click', swallow, true);
+  setTimeout(function () { document.removeEventListener('click', swallow, true); }, 600);
+  PM.setGpose(false);
+}, true);
+
+document.addEventListener('keydown', function (e) {
+  if (!lb.hidden) {
+    if (e.key === 'Escape') { if (lb.classList.contains('gp')) PM.toggleLbGpose(false); else PM.closeLB(); }
+    else if (e.key === 'ArrowRight') PM.step(1);
+    else if (e.key === 'ArrowLeft') PM.step(-1);
+    else if (e.key === 'h' || e.key === 'H') PM.toggleLbGpose();
+    else if (e.key === 'Tab') {
+      var f = Array.prototype.filter.call(lb.querySelectorAll('button'), function (b) { return b.offsetParent !== null; });
+      if (!f.length) return;
+      var i = f.indexOf(document.activeElement);
+      e.preventDefault();
+      f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+    }
+    return;
+  }
+  if (e.key === 'Escape' && PM.gpose) { PM.setGpose(false); return; }
+  var tag = (e.target && e.target.tagName) || '';
+  if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(tag) && !e.target.isContentEditable) {
+    e.preventDefault(); setChat(true); input.value = '/'; input.focus();
+  }
+});
+
+var bar = $('.pm-bar');
+PM.barH = function () { return bar.offsetHeight; }
+function syncBar() { root.style.setProperty('--barh', bar.offsetHeight + 'px'); }
+syncBar();
+if ('ResizeObserver' in window) new ResizeObserver(syncBar).observe(bar); else window.addEventListener('resize', syncBar);
+
+var TARGETS = { home: '#pm-home', gallery: '#pm-gallery', about: '#pm-about', contact: '#pm-contact' };
+root.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-go]'); if (!b) return;
+  var go = b.getAttribute('data-go');
+  var jump = function () { scrollToY(go === 'home' ? topOf(root) : topOf($(TARGETS[go])) - PM.barH()); };
+  if (PM.current) { if (PM.pushed) history.back(); else PM.closeZone(); setTimeout(jump, 60); }
+  else jump();
+});
+if ('IntersectionObserver' in window) {
+  var navBtns = root.querySelectorAll('.pm-nav button');
+  var sio = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (!en.isIntersecting) return;
+      var id = en.target.id.replace('pm-', '');
+      Array.prototype.forEach.call(navBtns, function (n) { n.setAttribute('aria-current', String(n.getAttribute('data-go') === id)); });
+    });
+  }, { rootMargin: '-45% 0px -50% 0px' });
+  ['#pm-home', '#pm-gallery', '#pm-about', '#pm-contact'].forEach(function (s) { sio.observe($(s)); });
+}
+})();
+</script>

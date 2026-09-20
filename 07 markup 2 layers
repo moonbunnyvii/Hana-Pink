@@ -1,0 +1,37 @@
+<!-- Hana Pink site — part 7 of 14: overlay markup (viewer, teleport bar, chat log, toast)
+     Carrd: Embed element, Type: Code, Style: Inline (directly after the previous part)
+     Keep the parts in this order. -->
+<!-- Layers: moved to <body> on load so Carrd's containers can't clip them -->
+<div class="pm-layer pm-lb" hidden role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <div class="pm-lb-stage">
+    <div class="pm-lb-frame"><img alt=""><div class="pm-vf" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
+  </div>
+  <div class="pm-lb-hud">
+    <div class="pm-lb-info"></div>
+    <div class="pm-lb-ctrl">
+      <button class="pm-ib pm-prev" type="button" data-ta="prev" aria-label="Previous photo"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M9 2L4 7l5 5" fill="none" stroke="currentColor"/></svg></button>
+      <span class="pm-count"></span>
+      <button class="pm-ib pm-next" type="button" data-ta="next" aria-label="Next photo"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2l5 5-5 5" fill="none" stroke="currentColor"/></svg></button>
+      <button class="pm-ib pm-hide" type="button"><span data-t="lb_hide">Hide UI</span></button>
+      <button class="pm-ib pm-close" type="button"><span data-t="close">Close</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="pm-layer pm-cast" hidden aria-hidden="true">
+  <div class="pm-flash"></div>
+  <div class="pm-cast-box">
+    <div class="pm-cast-row"><span data-t="cast">Teleport</span><span class="dest"></span></div>
+    <div class="pm-cast-bar"><i></i></div>
+  </div>
+</div>
+
+<div class="pm-layer pm-chat">
+  <button class="pm-chat-tab" type="button" aria-expanded="false"><svg class="pm-sp" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 0c.5 3.6 2.9 6 6.5 7-3.6 1-6 3.4-6.5 7-.5-3.6-2.9-6-6.5-7 3.6-1 6-3.4 6.5-7Z"/></svg><span data-t="chat_tab">Chat log</span></button>
+  <div class="pm-chat-body">
+    <div class="pm-chat-log" role="log" aria-live="polite"></div>
+    <label class="pm-chat-in"><span aria-hidden="true">›</span><input type="text" maxlength="120" autocomplete="off" spellcheck="false" data-tp="chat_ph" placeholder="Type /help" aria-label="Chat command"></label>
+  </div>
+</div>
+
+<div class="pm-layer pm-toast" role="status"></div>

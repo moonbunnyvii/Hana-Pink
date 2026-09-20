@@ -1,0 +1,161 @@
+<!-- Hana Pink site — part 10 of 14: core: helpers, Cloudinary, clock
+     Carrd: Embed element, Type: Code, Style: Hidden (Body End)
+     Keep the parts in this order. -->
+<script>
+(function () {
+var PM = window.PM;
+if (!PM || !PM.CONFIG) return;
+var CONFIG = PM.CONFIG, REGIONS = PM.REGIONS, T = PM.TEXT;
+var root = document.getElementById('pm');
+if (!root) return;
+var $ = function (s, e) { return (e || root).querySelector(s); };
+var lb = document.querySelector('.pm-layer.pm-lb'), cast = document.querySelector('.pm-layer.pm-cast'),
+    chat = document.querySelector('.pm-layer.pm-chat'), toastEl = document.querySelector('.pm-layer.pm-toast');
+var layers = [lb, cast, chat, toastEl];
+layers.forEach(function (l) { document.body.appendChild(l); });
+
+var RM = window.matchMedia('(prefers-reduced-motion: reduce)');
+var FINE = window.matchMedia('(pointer: fine)');
+PM.lang = CONFIG.defaultLang;
+try { PM.lang = localStorage.getItem('pm-lang') || PM.lang; } catch (e) {}
+var DEMO = !CONFIG.cloudName;
+
+function t(k) { var v = T[k]; return v ? (v[PM.lang] || v.en) : k; }
+function L(o) { return o == null ? '' : (typeof o === 'string' ? o : (o[PM.lang] || o.en || '')); }
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function hash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(seed) { var a = seed >>> 0; return function () { a = (a + 0x6D2B79F5) >>> 0; var x = a; x = Math.imul(x ^ (x >>> 15), x | 1); x ^= x + Math.imul(x ^ (x >>> 7), x | 61); return ((x ^ (x >>> 14)) >>> 0) / 4294967296; }; }
+var SPARK = '<svg class="pm-sp" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 0c.5 3.6 2.9 6 6.5 7-3.6 1-6 3.4-6.5 7-.5-3.6-2.9-6-6.5-7 3.6-1 6-3.4 6.5-7Z"/></svg>';
+
+var FEATURED = null, NAV_REGIONS = [], PLACES = [];
+REGIONS.forEach(function (r) {
+  r.places.forEach(function (p) { p.region = r; PLACES.push(p); });
+  if (r.featured && !FEATURED) FEATURED = r.places[0]; else NAV_REGIONS.push(r);
+});
+function findPlace(q) {
+  q = String(q || '').trim().toLowerCase(); if (!q) return null;
+  return PLACES.find(function (p) { return p.tag === q; }) ||
+    PLACES.find(function (p) { return p.en.toLowerCase().indexOf(q) === 0 || p.zh.indexOf(q) === 0 || p.tag.indexOf(q) === 0; }) ||
+    PLACES.find(function (p) { return p.en.toLowerCase().indexOf(q) > -1 || p.zh.indexOf(q) > -1; }) || null;
+}
+function photosLabel(n) { return PM.lang === 'zh' ? n + ' 张作品' : n + (n === 1 ? ' photo' : ' photos'); }
+function scrollToY(y) { window.scrollTo({ top: Math.max(0, y), behavior: RM.matches ? 'auto' : 'smooth' }); }
+function topOf(node) { return node.getBoundingClientRect().top + window.pageYOffset; }
+
+function cld(it, w) {
+  return 'https://res.cloudinary.com/' + CONFIG.cloudName + '/image/upload/c_limit,w_' + w + ',f_auto,q_auto/v' + it.version + '/' + encodeURI(it.public_id) + '.' + it.format;
+}
+function pickC(c, k) { var en = c[k] || c[k + '_zh'] || ''; var zh = c[k + '_zh'] || c[k] || ''; return (en || zh) ? { en: en, zh: zh } : null; }
+
+function fromCloudinary(list) {
+  return list.map(function (r) {
+    var c = (r.context && r.context.custom) || {};
+    var src = function (w) { return cld(r, w); };
+    return {
+      w: r.width, h: r.height, r: r.width / r.height,
+      thumb: src, full: src,
+      srcset: CONFIG.thumbWidths.map(function (w) { return cld(r, w) + ' ' + w + 'w'; }).join(', '),
+      cap: pickC(c, 'caption') || pickC(c, 'alt'), loc: pickC(c, 'location'), wx: pickC(c, 'weather'),
+      et: c.et || '', note: pickC(c, 'note'),
+      order: c.order != null && c.order !== '' ? parseFloat(c.order) : null,
+      created: Date.parse(r.created_at) || 0
+    };
+  }).sort(function (a, b) {
+    if (a.order != null && b.order != null) return a.order - b.order;
+    if (a.order != null) return -1;
+    if (b.order != null) return 1;
+    return b.created - a.created;
+  });
+}
+
+var DEMO_LOC = [['Old Sharlayan', '旧萨雷安'], ['Il Mheg', '伊尔美格'], ['Kugane', '黄金港'], ["Ul'dah", '乌尔达哈'], ['The Crystarium', '水晶都'], ['Thavnair', '萨维奈岛'], ['Tuliyollal', '图莱尤拉'], ['Limsa Lominsa', '利姆萨·罗敏萨'], ['Ishgard', '伊修加德']];
+var DEMO_WX = [['Clear skies', '碧空'], ['Fair skies', '晴朗'], ['Fog', '薄雾'], ['Rain', '小雨'], ['Snow', '小雪']];
+var RATIOS = [16 / 9, 16 / 9, 16 / 9, 3 / 2, 4 / 5, 2 / 3, 9 / 16, 1, 21 / 9];
+
+function demoSrc(seed, w, h, label) {
+  var R = rng(seed);
+  var g = function (lo, span) { var v = Math.round(lo + R() * span); return 'rgb(' + v + ',' + (v - 2) + ',' + (v - 3) + ')'; };
+  var top = g(78, 60), bot = g(26, 34);
+  var hy = h * (0.6 + R() * 0.16), d = 'M0 ' + h + ' L0 ' + hy.toFixed(1);
+  for (var i = 1; i <= 10; i++) d += ' L' + (w * i / 10).toFixed(1) + ' ' + (hy - R() * h * 0.15).toFixed(1);
+  d += ' L' + w + ' ' + h + ' Z';
+  var mx = w * (0.12 + R() * 0.76), my = h * (0.12 + R() * 0.2), mr = Math.min(w, h) * (0.04 + R() * 0.06);
+  var fx = w * (0.32 + R() * 0.36), fs = h * (0.2 + R() * 0.12), fy = h * 0.94;
+  var fig = '<g fill="#0b0b0d" opacity=".8"><circle cx="' + fx + '" cy="' + (fy - fs * 0.88) + '" r="' + (fs * 0.085) + '"/>' +
+    '<path d="M' + (fx - fs * 0.13) + ' ' + fy + ' L' + (fx - fs * 0.09) + ' ' + (fy - fs * 0.52) + ' Q' + fx + ' ' + (fy - fs * 0.84) + ' ' + (fx + fs * 0.09) + ' ' + (fy - fs * 0.52) + ' L' + (fx + fs * 0.15) + ' ' + fy + ' Z"/></g>';
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="xMidYMid slice">' +
+    '<defs><linearGradient id="a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + top + '"/><stop offset="1" stop-color="' + bot + '"/></linearGradient></defs>' +
+    '<rect width="' + w + '" height="' + h + '" fill="url(#a)"/><circle cx="' + mx + '" cy="' + my + '" r="' + mr + '" fill="#fff" opacity=".8"/>' +
+    '<path d="' + d + '" fill="#0e0e10" opacity=".65"/>' + fig +
+    '<text x="' + (w * 0.06) + '" y="' + (h * 0.13) + '" font-family="sans-serif" font-size="' + (h * 0.04) + '" fill="#fff" opacity=".45">' + label + '</text></svg>';
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
+function demoList(place) {
+  var R = rng(hash(place.tag)), n = 14 + Math.floor(R() * 32), out = [];
+  for (var i = 0; i < n; i++) {
+    var r = RATIOS[Math.floor(R() * RATIOS.length)], h = 400, w = Math.round(r * h);
+    var loc = DEMO_LOC[Math.floor(R() * DEMO_LOC.length)], wx = DEMO_WX[Math.floor(R() * DEMO_WX.length)];
+    var uri = demoSrc(hash(place.tag + i), w, h, place.en + ' ' + pad(i + 1));
+    var src = (function (u) { return function () { return u; }; })(uri);
+    out.push({
+      w: w, h: h, r: w / h, thumb: src, full: src, srcset: '',
+      cap: { en: place.en + ' No.' + pad(i + 1), zh: place.zh + ' No.' + pad(i + 1) },
+      loc: { en: loc[0], zh: loc[1] }, wx: { en: wx[0], zh: wx[1] }, et: pad(Math.floor(R() * 24)) + ':00', note: null
+    });
+  }
+  return out;
+}
+
+var cache = {};
+function loadPlace(place) {
+  if (cache[place.tag]) return cache[place.tag];
+  var p;
+  if (DEMO) p = wait(250 + Math.random() * 350).then(function () { return demoList(place); });
+  else p = fetch('https://res.cloudinary.com/' + CONFIG.cloudName + '/image/list/' + encodeURIComponent(place.tag) + '.json')
+      .then(function (res) {
+        if (res.status === 404) return { resources: [] };   // tag has no photos yet
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (j) { return fromCloudinary(j.resources || []); });
+  p = p.catch(function (e) { delete cache[place.tag]; throw e; });
+  cache[place.tag] = p;
+  return p;
+}
+
+var clockMode = 'et';
+function etNow() { var d = new Date(Date.now() * 3600 / 175); return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); }
+function ltNow() { var d = new Date(); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+function tick() {
+  var e = etNow();
+  $('.pm-clock small').textContent = clockMode === 'et' ? 'ET' : 'LT';
+  $('.pm-clock .t').textContent = clockMode === 'et' ? e : ltNow();
+  $('.pm-vf-et').textContent = 'ET ' + e;
+}
+var clockTimer = setInterval(tick, 1000); tick();
+$('.pm-clock').addEventListener('click', function () { clockMode = clockMode === 'et' ? 'lt' : 'et'; tick(); });
+document.addEventListener('visibilitychange', function () {
+  clearInterval(clockTimer);
+  if (!document.hidden) { tick(); clockTimer = setInterval(tick, 1000); }
+});
+
+$('.pm-hero-pic').src = CONFIG.heroImage || demoSrc(hash('hero'), 1600, 900, '');
+$('.pm-plate-pic').src = CONFIG.profileImage || demoSrc(hash('plate-portrait'), 600, 800, '');
+if (DEMO) $('.pm-demo').hidden = false;
+$('.pm-fact-dest').textContent = PLACES.length;
+
+
+function bi(en, zh) { return PM.lang === 'zh' ? zh : en; }
+
+// share with the other parts
+PM.root = root; PM.$ = $; PM.lb = lb; PM.cast = cast; PM.chat = chat; PM.toastEl = toastEl; PM.layers = layers;
+PM.RM = RM; PM.FINE = FINE; PM.DEMO = DEMO;
+PM.t = t; PM.L = L; PM.bi = bi; PM.pad = pad; PM.wait = wait; PM.el = el; PM.hash = hash; PM.rng = rng; PM.SPARK = SPARK;
+PM.FEATURED = FEATURED; PM.NAV_REGIONS = NAV_REGIONS; PM.PLACES = PLACES; PM.findPlace = findPlace;
+PM.photosLabel = photosLabel; PM.scrollToY = scrollToY; PM.topOf = topOf;
+PM.loadPlace = loadPlace; PM.demoSrc = demoSrc; PM.etNow = etNow; PM.ltNow = ltNow;
+})();
+</script>

@@ -1,0 +1,203 @@
+<script>
+(function () {
+var PM = window.PM;
+if (!PM || !PM.root) return;
+var root = PM.root, $ = PM.$, el = PM.el, t = PM.t, bi = PM.bi, chat = PM.chat, layers = PM.layers;
+var CONFIG = PM.CONFIG, RM = PM.RM, FINE = PM.FINE, findPlace = PM.findPlace;
+function svgCur(svg) { return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); }
+var CUR_N = svgCur('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke-linecap="square"><path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5" stroke="#fff" stroke-width="3" opacity=".8"/><path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5" stroke="#111"/></g><rect x="10.5" y="10.5" width="3" height="3" fill="#111" stroke="#fff" stroke-opacity=".8"/></svg>');
+var CUR_P = svgCur('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 1.5c.9 6.2 4.4 9.7 10.5 10.5C16.4 12.9 12.9 16.4 12 22.5 11.1 16.4 7.6 12.9 1.5 12 7.6 11.1 11.1 7.6 12 1.5Z" fill="#111" stroke="#fff" stroke-width="1" stroke-opacity=".8"/></svg>');
+if (FINE.matches) {
+  var c = CONFIG.cursor, ds = document.documentElement.style;
+  ds.setProperty('--cur', 'url("' + (c.normal || CUR_N) + '") ' + (c.normal ? c.normalX + ' ' + c.normalY : '12 12') + ', auto');
+  ds.setProperty('--cur-p', 'url("' + (c.pointer || CUR_P) + '") ' + (c.pointer ? c.pointerX + ' ' + c.pointerY : '12 2') + ', pointer');
+}
+
+(function trail() {
+  if (!CONFIG.cursorTrail || RM.matches || !FINE.matches) return;
+  var cv = el('canvas', 'pm-layer pm-trail'); cv.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(cv);
+  var x = cv.getContext('2d'), W = 0, H = 0, motes = [], running = false, last = 0, lx = -99, ly = -99;
+  var offX = 0, offY = 0, queued = false;
+
+  function sync() {
+    queued = false;
+    cv.style.transform = 'none';
+    var r = cv.getBoundingClientRect();
+    if (r.left || r.top) {
+      cv.style.transform = 'translate(' + (-r.left) + 'px,' + (-r.top) + 'px)';
+      r = cv.getBoundingClientRect();
+    }
+    offX = r.left; offY = r.top;
+  }
+  function syncSoon() { if (!queued) { queued = true; requestAnimationFrame(sync); } }
+  function size() {
+    var d = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    sync();
+  }
+  size();
+  window.addEventListener('resize', size);
+  window.addEventListener('scroll', syncSoon, { passive: true });
+  window.addEventListener('pointermove', function (e) {
+    if (e.pointerType !== 'mouse' || PM.gpose) return;
+    var px = e.clientX - offX, py = e.clientY - offY;
+    var dx = px - lx, dy = py - ly; if (dx * dx + dy * dy < 150) return;
+    lx = px; ly = py;
+    motes.push({ x: lx + (Math.random() - 0.5) * 10, y: ly + (Math.random() - 0.5) * 10, vx: (Math.random() - 0.5) * 0.25, vy: -0.22 - Math.random() * 0.35, s: 2 + Math.random() * 3, t: 0, l: 700 + Math.random() * 700, r: Math.random() * Math.PI });
+    if (motes.length > 44) motes.shift();
+    if (!running) { running = true; last = performance.now(); requestAnimationFrame(loop); }
+  }, { passive: true });
+  function star(cx, cy, s, rot) {
+    x.beginPath();
+    for (var i = 0; i < 4; i++) {
+      var a = rot + i * Math.PI / 2, b = a + Math.PI / 4;
+      x.lineTo(cx + Math.cos(a) * s, cy + Math.sin(a) * s);
+      x.lineTo(cx + Math.cos(b) * s * 0.22, cy + Math.sin(b) * s * 0.22);
+    }
+    x.closePath(); x.fill();
+  }
+  function loop(now) {
+    var dt = Math.min(50, now - last); last = now;
+    x.clearRect(0, 0, W, H);
+    x.shadowColor = 'rgba(255,255,255,.75)'; x.shadowBlur = 7;
+    for (var i = motes.length - 1; i >= 0; i--) {
+      var m = motes[i]; m.t += dt;
+      if (m.t >= m.l) { motes.splice(i, 1); continue; }
+      m.x += m.vx * dt * 0.06; m.y += m.vy * dt * 0.06;
+      var a = 1 - m.t / m.l;
+      x.fillStyle = 'rgba(24,24,26,' + (a * 0.6).toFixed(3) + ')';
+      star(m.x, m.y, m.s * (0.5 + a * 0.7), m.r + m.t * 0.0008);
+    }
+    x.shadowBlur = 0;
+    if (motes.length) requestAnimationFrame(loop); else { running = false; x.clearRect(0, 0, W, H); }
+  }
+})();
+
+var soundOn = false, actx = null, master = null, chimeBus = null, chimeT = null, audioEl = null;
+var soundBtn = $('.pm-sound');
+function buildPad() {
+  var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
+  actx = new AC();
+  master = actx.createGain(); master.gain.value = 0; master.connect(actx.destination);
+
+
+  var pad = actx.createGain(); pad.gain.value = 0.5;
+  var hp = actx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 220;
+  var lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2200; lp.Q.value = 0.3;
+  pad.connect(hp); hp.connect(lp); lp.connect(master);
+  [[329.63, 0.05], [493.88, 0.04], [659.25, 0.028], [987.77, 0.014]].forEach(function (v, i) {
+    var o = actx.createOscillator(), g = actx.createGain();
+    o.type = 'sine'; o.frequency.value = v[0]; o.detune.value = (i - 1.5) * 3;
+    g.gain.value = v[1];
+
+    var lfo = actx.createOscillator(), lg = actx.createGain();
+    lfo.frequency.value = 0.045 + i * 0.017; lg.gain.value = v[1] * 0.45;
+    lfo.connect(lg); lg.connect(g.gain); lfo.start();
+    o.connect(g); g.connect(pad); o.start();
+  });
+
+  chimeBus = actx.createGain(); chimeBus.gain.value = 0.55; chimeBus.connect(master);
+  return true;
+}
+
+function bell(freq, at, level) {
+  var t0 = actx.currentTime + at, out = actx.createGain();
+  out.gain.value = level; out.connect(chimeBus);
+  [[1, 1, 1.15], [2.01, 0.34, 0.75], [3.02, 0.12, 0.5]].forEach(function (p) {
+    var o = actx.createOscillator(), g = actx.createGain();
+    o.type = 'sine'; o.frequency.value = freq * p[0];
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(p[1], t0 + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + p[2]);
+    o.connect(g); g.connect(out); o.start(t0); o.stop(t0 + p[2] + 0.05);
+  });
+}
+
+PM.shutterFx = function () {
+  if (!soundOn || !actx || actx.state !== 'running') return;
+  var t = actx.currentTime, n = actx.createBufferSource(), buf = actx.createBuffer(1, actx.sampleRate * 0.08, actx.sampleRate), d = buf.getChannelData(0);
+  for (var i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+  n.buffer = buf;
+  var bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2600; bp.Q.value = 1.1;
+  var g = actx.createGain();
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.5, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+  n.connect(bp); bp.connect(g); g.connect(master); n.start(t);
+};
+
+function chime() {
+  var scale = [659.25, 739.99, 830.61, 987.77, 1108.73, 1318.51, 1479.98];
+  var i = Math.floor(Math.random() * (scale.length - 2));
+  var n = 2 + (Math.random() < 0.45 ? 1 : 0);
+  for (var k = 0; k < n; k++) {
+    bell(scale[Math.min(scale.length - 1, i + k + (Math.random() < 0.3 ? 1 : 0))], k * (0.16 + Math.random() * 0.08), 0.5 - k * 0.08);
+  }
+}
+function scheduleChime() {
+  clearTimeout(chimeT);
+  chimeT = setTimeout(function () { if (soundOn && actx && actx.state === 'running') chime(); if (soundOn) scheduleChime(); }, 4000 + Math.random() * 6000);
+}
+function resumeSound() {
+  if (CONFIG.musicUrl) { if (audioEl) audioEl.play().catch(function () {}); return; }
+  if (!actx) return;
+  actx.resume();
+  master.gain.cancelScheduledValues(actx.currentTime);
+  master.gain.setTargetAtTime(0.05, actx.currentTime, 1.1);
+  scheduleChime();
+}
+function pauseSound() {
+  clearTimeout(chimeT);
+  if (audioEl) audioEl.pause();
+  if (actx) { master.gain.cancelScheduledValues(actx.currentTime); master.gain.setTargetAtTime(0, actx.currentTime, 0.35); setTimeout(function () { if (!soundOn || document.hidden) actx.suspend(); }, 1600); }
+}
+PM.toggleSound = function () {
+  soundOn = !soundOn;
+  soundBtn.setAttribute('aria-pressed', String(soundOn));
+  if (soundOn) {
+    if (CONFIG.musicUrl && !audioEl) { audioEl = new Audio(CONFIG.musicUrl); audioEl.loop = true; audioEl.volume = 0.35; }
+    if (!CONFIG.musicUrl && !actx && !buildPad()) { soundOn = false; soundBtn.setAttribute('aria-pressed', 'false'); return; }
+    resumeSound();
+  } else pauseSound();
+}
+soundBtn.addEventListener('click', PM.toggleSound);
+
+function heroIn() { requestAnimationFrame(function () { requestAnimationFrame(function () { $('.pm-hero').classList.add('in'); }); }); }
+
+function intro() {
+  var seen = false;
+  try { seen = sessionStorage.getItem('pm-intro') === '1'; } catch (e) {}
+  if (!CONFIG.showIntro || seen || RM.matches) { heroIn(); return; }
+  var s = el('div', 'pm-layer pm-splash'); s.setAttribute('data-lang', PM.lang); s.setAttribute('aria-hidden', 'true');
+  s.innerHTML = '<div class="pm-zt"><i></i><h2></h2><i></i></div><p>Gilgamesh, Aether</p>';
+  s.querySelector('h2').textContent = t('brand');
+  document.body.appendChild(s);
+  requestAnimationFrame(function () { requestAnimationFrame(function () { s.classList.add('go'); }); });
+  var done = false;
+  function finish() {
+    if (done) return; done = true;
+    s.classList.add('out'); heroIn();
+    setTimeout(function () { s.remove(); }, 950);
+    try { sessionStorage.setItem('pm-intro', '1'); } catch (e) {}
+    document.removeEventListener('keydown', finish);
+  }
+  setTimeout(finish, 2700);
+  s.addEventListener('click', finish);
+  document.addEventListener('keydown', finish);
+}
+
+PM.applyLang();
+PM.say(bi('Welcome to Hana Pink’s photo archive.', '欢迎来到 Hana Pink 的作品集。'));
+PM.say(bi('Type /help to see what you can do here.', '输入 /help 查看可用命令。'));
+chat.classList.remove('unread');
+
+var deep = findPlace(new URLSearchParams(location.search).get('zone'));
+if (deep) { heroIn(); PM.openZone(deep, null); }
+else intro();
+
+document.addEventListener('visibilitychange', function () {
+  if (!soundOn) return;
+  if (document.hidden) pauseSound(); else resumeSound();
+});
+})();
+</script>
